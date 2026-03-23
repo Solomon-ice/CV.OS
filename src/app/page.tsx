@@ -3,7 +3,7 @@
 import { Button } from "@/components/UI";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, Sparkles, Shield, Zap, Loader2 } from "lucide-react";
+import { ArrowRight, Sparkles, Shield, Zap, Loader2, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function LandingPage() {
@@ -37,7 +37,7 @@ export default function LandingPage() {
           transition={{ duration: 0.5 }}
           className="glass-pill px-4 py-1.5 text-sm font-medium text-white/60 flex items-center gap-2"
         >
-          <Sparkles className="w-4 h-4 text-blue-400" />
+          <Sparkles className="w-4 h-4 text-blue-400 shadow-lg shadow-blue-400/20" />
           <span>The future of career design is here</span>
         </motion.div>
 
@@ -96,7 +96,8 @@ export default function LandingPage() {
         {[
           { icon: Zap, title: "Instant Live Preview", desc: "See your changes in real-time with an award-winning layout." },
           { icon: Shield, title: "Secure & Private", desc: "Your data is encrypted and stored securely on our cloud." },
-          { icon: Sparkles, title: "Export to PDF", desc: "Download high-fidelity PDFs ready for any application." }
+          { icon: Sparkles, title: "Export to PDF", desc: "Download high-fidelity PDFs ready for any application." },
+          { icon: Save, title: "Save your work", desc: "Save your work and come back to continue later." }
         ].map((feature, i) => (
           <motion.div
             key={i}

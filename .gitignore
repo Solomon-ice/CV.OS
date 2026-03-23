@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+cleanup.js
+diag.js
+repro.js
+list_indexes.js
+test_registration.js
+test-env.js

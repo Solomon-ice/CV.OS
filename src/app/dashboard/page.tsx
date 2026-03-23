@@ -6,11 +6,20 @@ import { GlassCard, Button } from '@/components/UI';
 import { motion } from 'framer-motion';
 import { Plus, FileText, Trash2, Edit3, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import DeleteResumeModal from '@/components/DeleteResumeModal';
+import { useAuth } from '@/context/AuthContext';
 
 export default function DashboardPage() {
   const [resumes, setResumes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; name: string }>({
+    isOpen: false,
+    id: '',
+    name: '',
+  });
+  
   const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchResumes();
@@ -56,18 +65,15 @@ export default function DashboardPage() {
     }
   };
 
-  const deleteResume = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (!confirm('Are you sure you want to delete this resume?')) return;
-    
+  const handleDeleteConfirm = async () => {
     try {
-      const res = await fetch(`/api/resume/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/resume/${deleteModal.id}`, { method: 'DELETE' });
       if (res.ok) {
-        setResumes(resumes.filter(r => r._id !== id));
+        setResumes(resumes.filter(r => r._id !== deleteModal.id));
       }
     } catch (err) {
       console.error(err);
+      throw err;
     }
   };
 
@@ -86,7 +92,7 @@ export default function DashboardPage() {
           <h1 className="text-4xl font-bold tracking-tight">Your Resumes</h1>
           <p className="text-white/40 text-lg">Manage and build your professional CVs.</p>
         </div>
-        <Button onClick={createResume} className="flex items-center gap-2">
+        <Button onClick={createResume} className="w-full md:w-auto flex items-center justify-center gap-2 py-4 md:py-3">
           <Plus className="w-5 h-5" /> New Resume
         </Button>
       </header>
@@ -95,19 +101,19 @@ export default function DashboardPage() {
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex flex-col items-center justify-center py-20 glass rounded-3xl border-dashed border-2 border-white/10"
+          className="flex flex-col items-center justify-center py-20 glass rounded-3xl border-dashed border-2 border-white/10 px-6 text-center"
         >
           <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
             <FileText className="w-8 h-8 text-white/20" />
           </div>
           <h2 className="text-xl font-medium text-white/60">No resumes yet</h2>
-          <p className="text-white/30 text-center max-w-xs mt-2 mb-8">
+          <p className="text-white/30 max-w-xs mt-2 mb-8">
             Start by creating your first cinematic resume.
           </p>
-          <Button onClick={createResume} variant="secondary">Create Now</Button>
+          <Button onClick={createResume} variant="secondary" className="w-full max-w-[200px]">Create Now</Button>
         </motion.div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {resumes.map((resume, i) => (
             <motion.div
               key={resume._id}
@@ -116,15 +122,19 @@ export default function DashboardPage() {
               transition={{ delay: i * 0.1 }}
             >
               <Link href={`/builder/${resume._id}`}>
-                <GlassCard className="group hover-lift h-full flex flex-col justify-between cursor-pointer border-white/5 hover:border-white/20">
+                <GlassCard className="group hover-lift h-full flex flex-col justify-between cursor-pointer border-white/5 hover:border-white/20 p-8">
                   <div className="space-y-4">
                     <div className="flex justify-between items-start">
                       <div className="w-12 h-12 glass-pill flex items-center justify-center bg-white/5">
                         <FileText className="w-6 h-6 text-white/40" />
                       </div>
                       <button 
-                        onClick={(e) => deleteResume(resume._id, e)}
-                        className="p-2 rounded-full hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setDeleteModal({ isOpen: true, id: resume._id, name: resume.name });
+                        }}
+                        className="p-2.5 rounded-full hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-all md:opacity-0 group-hover:opacity-100"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -146,6 +156,13 @@ export default function DashboardPage() {
           ))}
         </div>
       )}
+
+      <DeleteResumeModal 
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+        onConfirm={handleDeleteConfirm}
+        resumeName={deleteModal.name}
+      />
     </div>
   );
 }

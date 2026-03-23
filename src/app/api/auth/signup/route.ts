@@ -12,24 +12,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return NextResponse.json({ error: 'User already exists' }, { status: 400 });
+    // Normalize email
+    const normalizedEmail = email.toLowerCase().trim();
+
+    try {
+      const user = await User.create({ email: normalizedEmail, password });
+      const token = signToken({ userId: user._id });
+
+      const response = NextResponse.json({ 
+        message: 'User created successfully', 
+        user: { id: user._id, email: user.email } 
+      }, { status: 201 });
+
+      response.cookies.set('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 24 * 7, // 1 week
+        path: '/',
+      });
+
+      return response;
+    } catch (err: any) {
+      if (err.code === 11000) {
+        return NextResponse.json({ error: 'Email already registered' }, { status: 409 });
+      }
+      throw err;
     }
-
-    const user = await User.create({ email, password });
-    const token = signToken({ userId: user._id });
-
-    const response = NextResponse.json({ message: 'User created successfully', user: { id: user._id, email: user.email } }, { status: 201 });
-    response.cookies.set('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-      path: '/',
-    });
-
-    return response;
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Signup error:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

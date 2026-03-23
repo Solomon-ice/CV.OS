@@ -18,7 +18,7 @@ const GlassTemplate = ({ data }: { data: ResumeData }) => (
         <div className="flex gap-6 text-[11px] font-bold uppercase tracking-widest text-white/20">
           <span>{data.email}</span>
           <span>•</span>
-          <span>San Francisco</span>
+          <span>Modern</span>
           <span>•</span>
           <span>Portfolio</span>
         </div>

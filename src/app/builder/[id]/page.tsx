@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input, GlassCard } from '@/components/UI';
+import { Button, Input, GlassCard, cn } from '@/components/UI';
 import { 
   Plus, 
   Trash2, 
@@ -68,6 +68,7 @@ export default function BuilderPage({ params }: { params: Promise<{ id: string }
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [view, setView] = useState<'edit' | 'preview'>('edit');
   const router = useRouter();
 
   useEffect(() => {
@@ -158,20 +159,20 @@ export default function BuilderPage({ params }: { params: Promise<{ id: string }
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-black">
       {/* Editor Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5 px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-6">
-          <Link href="/dashboard" className="p-2 hover:bg-white/5 rounded-full transition-colors">
+      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5 px-4 md:px-6 py-4 flex justify-between items-center gap-4">
+        <div className="flex items-center gap-3 md:gap-6 flex-1 min-w-0">
+          <Link href="/dashboard" className="p-2 hover:bg-white/5 rounded-full transition-colors shrink-0">
             <ChevronLeft className="w-5 h-5 text-white/50" />
           </Link>
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <input 
               value={data.name}
               onChange={(e) => updateField('name', e.target.value)}
-              className="bg-transparent border-none focus:ring-0 text-lg font-bold p-0 w-64"
+              className="bg-transparent border-none focus:ring-0 text-base md:text-lg font-bold p-0 w-full truncate"
             />
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-2 text-[10px] md:text-xs">
               {saving ? (
                 <span className="text-white/30 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Saving...</span>
               ) : lastSaved ? (
@@ -180,20 +181,56 @@ export default function BuilderPage({ params }: { params: Promise<{ id: string }
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <Button variant="secondary" className="flex items-center gap-2 text-sm" onClick={() => window.open(`/api/resume/${id}/pdf`, '_blank')}>
-            <Download className="w-4 h-4" /> Download PDF
+
+        {/* Mobile View Toggle */}
+        <div className="flex lg:hidden glass-pill p-1 bg-white/5">
+          <button 
+            onClick={() => setView('edit')}
+            className={cn(
+              "px-4 py-1.5 rounded-full text-xs font-semibold transition-all",
+              view === 'edit' ? "bg-white text-black" : "text-white/40"
+            )}
+          >
+            Edit
+          </button>
+          <button 
+            onClick={() => setView('preview')}
+            className={cn(
+              "px-4 py-1.5 rounded-full text-xs font-semibold transition-all",
+              view === 'preview' ? "bg-white text-black" : "text-white/40"
+            )}
+          >
+            Show
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 md:gap-4 shrink-0">
+          <Button 
+            variant="secondary" 
+            className="hidden sm:flex items-center gap-2 text-sm px-4 py-2" 
+            onClick={() => window.open(`/api/resume/${id}/pdf`, '_blank')}
+          >
+            <Download className="w-4 h-4" /> <span className="hidden md:inline">Download PDF</span>
           </Button>
-          <Button className="flex items-center gap-2 text-sm" onClick={saveResume}>
-            <Save className="w-4 h-4" /> Save Now
+          <Button 
+            className="flex items-center gap-2 text-sm px-4 py-2" 
+            onClick={() => window.open(`/api/resume/${id}/pdf`, '_blank')}
+            variant="primary"
+          >
+             <Download className="sm:hidden w-4 h-4" />
+             <Save className="hidden sm:block w-4 h-4" /> 
+             <span className="hidden sm:inline">Save Now</span>
           </Button>
         </div>
       </header>
 
-      <div className="flex pt-24 min-h-screen">
+      <div className="flex pt-20 md:pt-24 min-h-screen">
         {/* Left Panel: Inputs */}
-        <div className="w-full lg:w-[45%] p-8 overflow-y-auto max-h-[calc(100vh-6rem)] custom-scrollbar">
-          <div className="space-y-12 pb-20">
+        <div className={cn(
+          "w-full lg:w-[45%] p-4 md:p-8 overflow-y-auto h-[calc(100vh-5rem)] md:h-[calc(100vh-6rem)] custom-scrollbar pb-32",
+          view === 'preview' ? "hidden lg:block" : "block"
+        )}>
+          <div className="space-y-12">
             {/* Basics */}
             <section>
               <SectionHeader icon={User} title="Personal Info" />
@@ -215,7 +252,7 @@ export default function BuilderPage({ params }: { params: Promise<{ id: string }
                     <textarea 
                       value={data.summary}
                       onChange={(e) => updateField('summary', e.target.value)}
-                      className="w-full h-32 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/20 transition-all resize-none font-medium"
+                      className="w-full h-32 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/20 transition-all resize-none font-medium text-sm md:text-base"
                       placeholder="Briefly describe your career highlights..."
                     />
                   </div>
@@ -230,20 +267,20 @@ export default function BuilderPage({ params }: { params: Promise<{ id: string }
                   <Briefcase className="w-5 h-5 text-blue-400" />
                   <h2 className="text-lg font-semibold tracking-tight">Experience</h2>
                 </div>
-                <Button variant="ghost" className="p-2 h-auto text-blue-400" onClick={() => addArrayItem('experience')}>
+                <Button variant="ghost" className="p-2 h-auto text-blue-400 text-sm" onClick={() => addArrayItem('experience')}>
                   <Plus className="w-4 h-4 mr-1"/> Add
                 </Button>
               </div>
               <div className="space-y-6">
                 {data.experience.map((exp: any, i: number) => (
-                  <GlassCard key={i} className="relative group p-6 border-white/5">
+                  <GlassCard key={i} className="relative group p-4 md:p-6 border-white/5">
                     <button 
                       onClick={() => removeArrayItem('experience', i)}
-                      className="absolute top-4 right-4 p-2 text-white/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                      className="absolute top-4 right-4 p-2 text-white/20 hover:text-red-400 lg:opacity-0 lg:group-hover:opacity-100 transition-all"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
-                    <div className="grid md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <Input 
                         label="Job Title" 
                         value={exp.title}
@@ -281,20 +318,20 @@ export default function BuilderPage({ params }: { params: Promise<{ id: string }
                   <GraduationCap className="w-5 h-5 text-blue-400" />
                   <h2 className="text-lg font-semibold tracking-tight">Education</h2>
                 </div>
-                <Button variant="ghost" className="p-2 h-auto text-blue-400" onClick={() => addArrayItem('education')}>
+                <Button variant="ghost" className="p-2 h-auto text-blue-400 text-sm" onClick={() => addArrayItem('education')}>
                   <Plus className="w-4 h-4 mr-1"/> Add
                 </Button>
               </div>
               <div className="space-y-6">
                 {data.education.map((edu: any, i: number) => (
-                  <GlassCard key={i} className="relative group p-6 border-white/5">
+                  <GlassCard key={i} className="relative group p-4 md:p-6 border-white/5">
                     <button 
                       onClick={() => removeArrayItem('education', i)}
-                      className="absolute top-4 right-4 p-2 text-white/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                      className="absolute top-4 right-4 p-2 text-white/20 hover:text-red-400 lg:opacity-0 lg:group-hover:opacity-100 transition-all"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Input 
                         label="Degree / Course" 
                         value={edu.title}
@@ -314,7 +351,7 @@ export default function BuilderPage({ params }: { params: Promise<{ id: string }
             {/* Skills */}
             <section>
               <SectionHeader icon={Code2} title="Skills" />
-              <div className="glass p-6 space-y-4">
+              <div className="glass p-4 md:p-6 space-y-4">
                 <div className="flex gap-2">
                   <Input 
                     placeholder="Add a skill (e.g. React, Python)" 
@@ -334,7 +371,7 @@ export default function BuilderPage({ params }: { params: Promise<{ id: string }
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.8, opacity: 0 }}
-                        className="glass-pill px-4 py-1.5 text-sm flex items-center gap-2 group"
+                        className="glass-pill px-3 md:px-4 py-1.5 text-xs md:text-sm flex items-center gap-2 group"
                       >
                         {skill}
                         <button onClick={() => removeSkill(i)} className="hover:text-red-400 text-white/30 transition-colors">
@@ -350,11 +387,16 @@ export default function BuilderPage({ params }: { params: Promise<{ id: string }
         </div>
 
         {/* Right Panel: Preview */}
-        <div className="hidden lg:block w-[55%] bg-[#111] p-12 overflow-y-auto max-h-[calc(100vh-6rem)] relative">
-          <div className="sticky top-0 z-10 mb-8 flex items-center gap-2 text-white/30 text-xs font-semibold uppercase tracking-widest">
+        <div className={cn(
+          "w-full lg:w-[55%] bg-[#080808] p-4 md:p-12 overflow-y-auto h-[calc(100vh-5rem)] md:h-[calc(100vh-6rem)] relative pb-32",
+          view === 'edit' ? "hidden lg:block" : "block"
+        )}>
+          <div className="sticky top-0 z-10 mb-8 flex items-center gap-2 text-white/30 text-xs font-semibold uppercase tracking-widest bg-[#080808]/80 backdrop-blur-md py-4 sm:py-0">
             <Layout className="w-3 h-3" /> Live Preview
           </div>
-          <PreviewPanel data={data} />
+          <div className="lg:max-h-full overflow-y-auto sm:overflow-visible">
+             <PreviewPanel data={data} />
+          </div>
         </div>
       </div>
     </div>

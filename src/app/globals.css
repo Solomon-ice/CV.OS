@@ -6,7 +6,7 @@
   --card-bg: rgba(255, 255, 255, 0.05);
   --card-border: rgba(255, 255, 255, 0.1);
   --accent: #0071e3;
-  --glass-blur: 16px;
+  --glass-blur: 10px;
 }
 
 body {
